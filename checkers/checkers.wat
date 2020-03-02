@@ -5,6 +5,53 @@
     (global $BLACK i32 (i32.const 2))
     (global $CROWN i32 (i32.const 4))
 
+    ;; set a piece on the board
+    (func $setPiece (param $x i32) (param $y i32) (param $piece i32)
+        (i32.store
+            (call $offsetForPosition (get_local $x) (get_local $y))
+            (get_local $piece)
+        )
+    )
+
+    ;; get a piece from the board. out-of-range causes a trap.
+    (func $getPiece (param $x i32) (param $y i32) (result i32)
+        (if (result i32)
+            (block (result i32)
+                (i32.and
+                    (call $inRange
+                        (i32.const 0)
+                        (i32.const 7)
+                        (get_local $x)
+                    )
+                    (call $inRange
+                        (i32.const 0)
+                        (i32.const 7)
+                        (get_local $y)
+                    )
+                )
+            )
+            (then
+                (i32.load
+                    (call $offsetForPosition
+                        (get_local $x)
+                        (get_local $y)
+                    )
+                )
+            )
+            (else 
+                (unreachable)
+            )
+        )
+    )
+
+    ;; detect if values are in within range (inclusive high and low)
+    (func $inRange (param $low i32) (param $high i32) (param $val i32) (result i32)
+        (i32.and
+            (i32.ge_s (get_local $val) (get_local $low))
+            (i32.le_s (get_local $val) (get_local $high))
+        )
+    )
+
     ;; determine if a piece has been crowned
     (func $isCrowned (param $piece i32) (result i32)
         (i32.eq
@@ -66,4 +113,7 @@
     (func (export "FLAG_CROWN") (result i32) get_global $CROWN)
     (export "with_crown" (func $withCrown))
     (export "without_crown" (func $withoutCrown))
+    (export "in_range" (func $inRange))
+    (export "get_piece" (func $getPiece))
+    (export "set_piece" (func $setPiece))
 )

@@ -14,6 +14,10 @@ pub trait CheckersTests {
     fn is_crowned(&self, piece: i32) -> i32;
     fn with_crown(&self, piece: i32) -> i32;
     fn without_crown(&self, piece: i32) -> i32;
+
+    fn in_range(&self, low: i32, high: i32, val: i32) -> i32;
+    fn get_piece(&self, x: i32, y: i32) -> i32;
+    fn set_piece(&self, x: i32, y: i32, piece: i32);
 }
 
 pub const WASM_CHECKERS: &str = "../checkers.wasm";
@@ -63,5 +67,39 @@ mod tests {
 
         assert_eq!(checkers.with_crown(WHITE), WHITE | CROWN);
         assert_eq!(checkers.with_crown(BLACK), BLACK | CROWN);
+    }
+
+    #[test]
+    fn test_bounds() {
+        let checkers = load(WASM_CHECKERS);
+        assert_eq!(checkers.in_range(0, 7, 1), 1);
+        assert_eq!(checkers.in_range(2, 99, 87), 1);
+        assert_eq!(checkers.in_range(0, 7, 8), 0);
+    }
+
+    #[test]
+    fn test_get_set_piece() {
+        let checkers = load(WASM_CHECKERS);
+        checkers.set_piece(0, 0, WHITE | CROWN);
+        assert_eq!(checkers.get_piece(0, 0), WHITE | CROWN);
+        assert_ne!(checkers.get_piece(0, 0), BLACK);
+        assert_ne!(checkers.get_piece(0, 0), BLACK | CROWN);
+        assert_ne!(checkers.get_piece(0, 0), WHITE);
+
+        assert_eq!(checkers.get_piece(3, 4), 0);
+
+        checkers.set_piece(4, 2, BLACK);
+        assert_eq!(checkers.get_piece(4, 2), BLACK);
+        assert_ne!(checkers.get_piece(4, 2), BLACK | CROWN);
+        assert_ne!(checkers.get_piece(4, 2), WHITE | CROWN);
+        assert_ne!(checkers.get_piece(4, 2), WHITE);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_unreachable_piece() {
+        let checkers = load(WASM_CHECKERS);
+        checkers.set_piece(999, 999, WHITE);
+        assert_eq!(checkers.get_piece(999, 999), WHITE);
     }
 }
