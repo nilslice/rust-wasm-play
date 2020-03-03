@@ -18,6 +18,11 @@ pub trait CheckersTests {
     fn in_range(&self, low: i32, high: i32, val: i32) -> i32;
     fn get_piece(&self, x: i32, y: i32) -> i32;
     fn set_piece(&self, x: i32, y: i32, piece: i32);
+
+    fn get_turn_owner(&self) -> i32;
+    fn toggle_turn_owner(&self);
+    fn set_turn_owner(&self, piece: i32);
+    fn is_players_turn(&self, player: i32) -> i32;
 }
 
 pub const WASM_CHECKERS: &str = "../checkers.wasm";
@@ -101,5 +106,19 @@ mod tests {
         let checkers = load(WASM_CHECKERS);
         checkers.set_piece(999, 999, WHITE);
         assert_eq!(checkers.get_piece(999, 999), WHITE);
+    }
+
+    #[test]
+    fn test_turn_update() {
+        let checkers = load(WASM_CHECKERS);
+        assert_eq!(checkers.get_turn_owner(), 0);
+        checkers.set_turn_owner(WHITE);
+        assert_eq!(checkers.get_turn_owner(), WHITE);
+        checkers.toggle_turn_owner();
+        assert_eq!(checkers.get_turn_owner(), BLACK);
+        checkers.set_turn_owner(WHITE | CROWN);
+        assert_eq!(checkers.get_turn_owner(), WHITE);
+        checkers.toggle_turn_owner();
+        assert_eq!(checkers.is_players_turn(BLACK), 1);
     }
 }

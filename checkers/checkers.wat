@@ -5,6 +5,33 @@
     (global $BLACK i32 (i32.const 2))
     (global $CROWN i32 (i32.const 4))
 
+    (global $currentTurn (mut i32) (i32.const 0))
+
+    ;; gets the current turn owner (white or black)
+    (func $getTurnOwner (result i32)
+        (call $withoutCrown (get_global $currentTurn))
+    )
+
+    ;;  at the end of a turn, switch the turn owner to the other player
+    (func $toggleTurnOwner
+        (if (i32.eq (call $getTurnOwner) (get_global $WHITE))
+            (then (call $setTurnOwner (get_global $BLACK)))
+        )
+    )
+
+    ;; set the turn owner to white or black
+    (func $setTurnOwner (param $piece i32)
+        (set_global $currentTurn (call $withoutCrown (get_local $piece)))
+    )
+
+    ;; determine if it's a players turn
+    (func $isPlayersTurn (param $player i32) (result i32)
+        (i32.gt_s
+            (i32.and (call $withoutCrown (get_local $player)) (call $getTurnOwner))
+            (i32.const 0)
+        )
+    )
+
     ;; set a piece on the board
     (func $setPiece (param $x i32) (param $y i32) (param $piece i32)
         (i32.store
@@ -116,4 +143,8 @@
     (export "in_range" (func $inRange))
     (export "get_piece" (func $getPiece))
     (export "set_piece" (func $setPiece))
+    (export "get_turn_owner" (func $getTurnOwner))
+    (export "toggle_turn_owner" (func $toggleTurnOwner))
+    (export "set_turn_owner" (func $setTurnOwner))
+    (export "is_players_turn" (func $isPlayersTurn))
 )
