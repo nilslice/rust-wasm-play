@@ -26,9 +26,9 @@
 
     ;; determine if it's a players turn
     (func $isPlayersTurn (param $player i32) (result i32)
-        (i32.gt_s
-            (i32.and (call $withoutCrown (get_local $player)) (call $getTurnOwner))
-            (i32.const 0)
+        (i32.eq 
+            (call $withoutCrown (get_local $player)) 
+            (call $getTurnOwner)
         )
     )
 
