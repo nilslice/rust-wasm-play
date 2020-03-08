@@ -23,12 +23,17 @@ pub trait CheckersTests {
     fn toggle_turn_owner(&self);
     fn set_turn_owner(&self, piece: i32);
     fn is_players_turn(&self, player: i32) -> i32;
+
+    fn should_crown(&self, y: i32, piece: i32) -> i32;
+    fn crown_piece(&self, x: i32, y: i32);
 }
 
 pub const WASM_CHECKERS: &str = "../checkers.wasm";
 pub const WHITE: i32 = 0b0001;
 pub const BLACK: i32 = 0b0010;
 pub const CROWN: i32 = 0b0100;
+pub const CROWN_ROW_BLACK: i32 = 0;
+pub const CROWN_ROW_WHITE: i32 = 7;
 
 #[cfg(test)]
 mod tests {
@@ -120,5 +125,33 @@ mod tests {
         assert_eq!(checkers.get_turn_owner(), WHITE);
         checkers.toggle_turn_owner();
         assert_eq!(checkers.is_players_turn(BLACK), 1);
+    }
+
+    #[test]
+    fn test_should_crown() {
+        let checkers = load(WASM_CHECKERS);
+        for i in -1000..=1000 {
+            let mut cmp = 0;
+            if i == 0 {
+                cmp = 1
+            }
+            assert_eq!(checkers.should_crown(i, BLACK), cmp);
+        }
+
+        for i in -1000..=1000 {
+            let mut cmp = 0;
+            if i == 7 {
+                cmp = 1
+            }
+            assert_eq!(checkers.should_crown(i, WHITE), cmp);
+        }
+    }
+
+    #[test]
+    fn test_crown_piece() {
+        let checkers = load(WASM_CHECKERS);
+        checkers.set_piece(0, 0, BLACK);
+        checkers.crown_piece(0, 0);
+        assert_eq!(checkers.get_piece(0, 0), BLACK | CROWN);
     }
 }

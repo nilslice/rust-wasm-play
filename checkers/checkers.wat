@@ -1,4 +1,8 @@
-(module
+(module    
+    ;; (import "events" "piece_crowned"
+    ;;     (func $notify_piece_crowned (param $piece_x i32) (param $piece_y i32))
+    ;; )
+
     (memory $mem 1)
 
     (global $WHITE i32 (i32.const 1))
@@ -6,6 +10,40 @@
     (global $CROWN i32 (i32.const 4))
 
     (global $currentTurn (mut i32) (i32.const 0))
+
+
+    ;; converts a piece into a crowned piece and invokes a host notifier
+    (func $crownPiece (param $x i32) (param $y i32)
+        (local $piece i32) ;; temp variable `piece` is only in function scope 
+        (set_local $piece (call $getPiece (get_local $x) (get_local $y)))
+        (call $setPiece 
+            (get_local $x) (get_local $y) 
+            (call $withCrown (get_local $piece))
+        )
+        ;; (call $notify_piece_crowned (get_local $x) (get_local $y))
+    )
+
+    ;; determine if a piece should be crowned
+    ;; black pieces are crowned on row 0, white on row 7
+    (func $shouldCrown (param $piece_y i32) (param $piece i32) (result i32)
+        (i32.or
+            (i32.and
+                (i32.eq
+                    (get_local $piece_y)
+                    (i32.const 0)
+                )
+                (call $isBlack (get_local $piece))
+            )
+
+            (i32.and
+                (i32.eq
+                    (get_local $piece_y)
+                    (i32.const 7)
+                )
+                (call $isWhite (get_local $piece))
+            )
+        )
+    )
 
     ;; gets the current turn owner (white or black)
     (func $getTurnOwner (result i32)
@@ -129,6 +167,10 @@
         )
     )
 
+    (func $distance (param $x i32) (param $y i32) (result i32)
+        (i32.sub (get_local $x) (get_local $y))
+    )
+
     ;; exports specifically for tests
     (export "index_for_position" (func $indexForPosition))
     (export "offset_for_position" (func $offsetForPosition))
@@ -147,4 +189,7 @@
     (export "toggle_turn_owner" (func $toggleTurnOwner))
     (export "set_turn_owner" (func $setTurnOwner))
     (export "is_players_turn" (func $isPlayersTurn))
+    (export "should_crown" (func $shouldCrown))
+    (export "crown_piece" (func $crownPiece))
+    (export "distance" (func $distance))
 )
